@@ -93,7 +93,6 @@ function pauseMusic() {
     audio.pause();
 }
 
-
 function loadMusic(song) {
     audio.src = song.path;
     elements.title.textContent = song.displayName;
