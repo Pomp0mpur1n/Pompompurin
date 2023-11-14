@@ -112,10 +112,10 @@ function updateProgressBar() {
     music.currentTime = (clickX / width) * music.duration;
   
     // Skip to the next song if the user is moving the song time past the end of the song
-    if (music.currentTime >= music.duration) {
+    if (e.type === 'touchend' && music.currentTime >= music.duration) {
       changeMusic(1);
     }
-  }
+  }  
   
 
 function redirectToWebsite() {
