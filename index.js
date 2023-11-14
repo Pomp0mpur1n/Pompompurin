@@ -79,17 +79,20 @@ function togglePlay() {
     player.isPlaying ? pauseMusic() : playMusic();
 }
 
-audio.addEventListener('play', function() {
+function playMusic() {
     player.isPlaying = true;
     elements.playBtn.classList.replace('fa-play', 'fa-pause');
     elements.playBtn.setAttribute('title', 'Pause');
-});
+    audio.play();
+}
 
-audio.addEventListener('pause', function() {
+function pauseMusic() {
     player.isPlaying = false;
     elements.playBtn.classList.replace('fa-pause', 'fa-play');
     elements.playBtn.setAttribute('title', 'Play');
-});
+    audio.pause();
+}
+
 
 function loadMusic(song) {
     audio.src = song.path;
