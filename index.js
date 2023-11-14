@@ -135,9 +135,12 @@ function updateProgressBar({ target: { duration, currentTime } }) {
 
 function setProgressBar(e) {
     const width = elements.playerProgress.clientWidth;
-    const clickX = e.offsetX;
-    const { duration } = audio;
-    audio.currentTime = (clickX / width) * duration;
+
+    if (e.type === 'click' || (e.type === 'touchend' && e.touches.length === 0)) {
+        const clickX = e.type === 'click' ? e.offsetX : e.changedTouches[0].pageX - elements.playerProgress.getBoundingClientRect().left;
+        const { duration } = audio;
+        audio.currentTime = (clickX / width) * duration;
+    }
 }
 
 function redirectToWebsite() {
@@ -156,6 +159,9 @@ elements.nextBtn.addEventListener('click', () => changeMusic(1));
 audio.addEventListener('ended', () => changeMusic(1));
 audio.addEventListener('timeupdate', updateProgressBar);
 elements.playerProgress.addEventListener('click', setProgressBar);
+elements.playerProgress.addEventListener('touchstart', setProgressBar);
+elements.playerProgress.addEventListener('touchmove', setProgressBar);
+elements.playerProgress.addEventListener('touchend', setProgressBar);
 elements.image.addEventListener('click', redirectToWebsite);
 document.addEventListener('keydown', handleKeydown);
 
