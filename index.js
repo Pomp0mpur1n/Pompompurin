@@ -11,7 +11,6 @@ const image = document.getElementById('cover'),
     background = document.getElementById('bg-img');
 
 const music = new Audio();
-let nextSong = new Audio();
 
 const songs = [
     {
@@ -35,6 +34,7 @@ const songs = [
 ];
 
 let musicIndex = 0;
+// Check if Playing
 let isPlaying = false;
 
 function togglePlay() {
@@ -47,76 +47,77 @@ function togglePlay() {
 
 function playMusic() {
     isPlaying = true;
+    // Change play button icon
     playBtn.classList.replace('fa-play', 'fa-pause');
+    // Set button hover title
     playBtn.setAttribute('title', 'Pause');
     music.play();
 }
 
 function pauseMusic() {
     isPlaying = false;
+    // Change pause button icon
     playBtn.classList.replace('fa-pause', 'fa-play');
+    // Set button hover title
     playBtn.setAttribute('title', 'Play');
     music.pause();
 }
 
 function loadMusic(song) {
-    music.pause();
-
     music.src = song.path;
-    music.load();
-
     title.textContent = song.displayName;
     artist.textContent = song.artist;
     image.src = song.cover;
     background.src = song.cover;
-
-    const nextIndex = (musicIndex + 1) % songs.length;
-    nextSong.src = songs[nextIndex].path;
-    nextSong.load();
 }
 
 function changeMusic(direction) {
     musicIndex = (musicIndex + direction + songs.length) % songs.length;
     loadMusic(songs[musicIndex]);
 
+    // Check if the music is playing before calling playMusic
     if (isPlaying) {
         music.play();
     }
 }
 
-function updateProgressBar() {
-    const { duration, currentTime } = music;
-    const progressPercent = (currentTime / duration) * 100;
-  
-    requestAnimationFrame(() => {
-      progress.style.width = `${progressPercent}%`;
-    });
-  
-    const formatTime = (time) => String(Math.floor(time)).padStart(2, '0');
-    durationEl.textContent = `${formatTime(duration / 60)}:${formatTime(duration % 60)}`;
-    currentTimeEl.textContent = `${formatTime(currentTime / 60)}:${formatTime(currentTime % 60)}`;
-  }
-  
+// Update Progress Bar & Time
+function updateProgressBar(e){
+    if(isPlaying){
+        const{duration, currentTime} = e.srcElement;
+        // Upadate Progress bar width
+        const progressPercent = (currentTime / duration) * 100;
+        progress.style.width=`${progressPercent}%`;
+        // Calculate display for duration
+        const durationMinutes = Math.floor(duration / 60);
+        let durationSeconds = Math.floor(duration % 60);
+        if(durationSeconds < 10){
+            durationSeconds = `0${durationSeconds}`
+        }
+         // Delay switching current Element to avoid NaN
+         if(durationSeconds){
+            durationEl.textContent= `${durationMinutes}:${durationSeconds}`;
+     }
 
-  function setProgressBar(e) {
-    const width = playerProgress.clientWidth;
-    let clickX;
-    if (e.type === 'touchstart' || e.type === 'touchmove') {
-      clickX = e.touches[0].clientX - playerProgress.getBoundingClientRect().left;
-      if (e.type === 'touchmove') {
-        e.preventDefault();
-      }
-    } else {
-      clickX = e.offsetX;
-    }
-    music.currentTime = (clickX / width) * music.duration;
-  
-    // Skip to the next song if the user is moving the song time past the end of the song
-    if (e.type === 'touchend' && music.currentTime >= music.duration) {
-      changeMusic(1);
-    }
-  }  
-  
+        // Calculate display for current Time
+        const currentMinutes = Math.floor(currentTime / 60); //*(converting to minutes)...
+        let currentSeconds = Math.floor(currentTime % 60);
+        if(currentSeconds < 10){
+            currentSeconds = `0${currentSeconds}`
+        }
+        currentTimeEl.textContent=`${currentMinutes}:${currentSeconds}`;
+
+        
+    } 
+}
+
+// Set Progress Bar
+function setProgressBar(e){
+    const width=this.clientWidth;
+    const clickX=e.offsetX;
+    const {duration} = music;
+    music.currentTime=(clickX / width) * duration; //gives the actual time at that point of the song...
+}
 
 function redirectToWebsite() {
     window.open('https://soundcloud.com/user-190670813', '_blank');
@@ -134,9 +135,8 @@ nextBtn.addEventListener('click', () => changeMusic(1));
 music.addEventListener('ended', () => changeMusic(1));
 music.addEventListener('timeupdate', updateProgressBar);
 playerProgress.addEventListener('click', setProgressBar);
-playerProgress.addEventListener('touchstart', setProgressBar);
-playerProgress.addEventListener('touchmove', setProgressBar);
 image.addEventListener('click', redirectToWebsite);
 document.addEventListener('keydown', handleKeydown);
 
+// Load the initial song
 loadMusic(songs[musicIndex]);
