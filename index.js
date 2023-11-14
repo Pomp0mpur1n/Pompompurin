@@ -1,16 +1,22 @@
-const image = document.getElementById('cover'),
-    title = document.getElementById('music-title'),
-    artist = document.getElementById('music-artist'),
-    currentTimeEl = document.getElementById('current-time'),
-    durationEl = document.getElementById('duration'),
-    progress = document.getElementById('progress'),
-    playerProgress = document.getElementById('player-progress'),
-    prevBtn = document.getElementById('prev'),
-    nextBtn = document.getElementById('next'),
-    playBtn = document.getElementById('play'),
-    background = document.getElementById('bg-img');
+const audio = new Audio();
+const player = {
+    currentIndex: 0,
+    isPlaying: false,
+};
 
-const music = new Audio();
+const elements = {
+    image: document.getElementById('cover'),
+    title: document.getElementById('music-title'),
+    artist: document.getElementById('music-artist'),
+    currentTimeEl: document.getElementById('current-time'),
+    durationEl: document.getElementById('duration'),
+    progress: document.getElementById('progress'),
+    playerProgress: document.getElementById('player-progress'),
+    prevBtn: document.getElementById('prev'),
+    nextBtn: document.getElementById('next'),
+    playBtn: document.getElementById('play'),
+    background: document.getElementById('bg-img'),
+};
 
 const songs = [
     {
@@ -33,90 +39,103 @@ const songs = [
     },
 ];
 
-let musicIndex = 0;
-// Check if Playing
-let isPlaying = false;
+// Preload and buffer audio
+audio.preload = 'auto';
+audio.addEventListener('canplay', function() {
+    audio.play();
+});
+
+audio.addEventListener('canplay', function() {
+    // Optionally, you can update the UI or take other actions here
+});
+
+audio.addEventListener('timeupdate', function() {
+    const { duration, currentTime } = audio;
+    const progressPercent = (currentTime / duration) * 100;
+    elements.progress.style.width = `${progressPercent}%`;
+
+    const durationMinutes = Math.floor(duration / 60);
+    let durationSeconds = Math.floor(duration % 60);
+
+    if (durationSeconds < 10) {
+        durationSeconds = `0${durationSeconds}`;
+    }
+
+    if (durationSeconds) {
+        elements.durationEl.textContent = `${durationMinutes}:${durationSeconds}`;
+    }
+
+    const currentMinutes = Math.floor(currentTime / 60);
+    let currentSeconds = Math.floor(currentTime % 60);
+
+    if (currentSeconds < 10) {
+        currentSeconds = `0${currentSeconds}`;
+    }
+
+    elements.currentTimeEl.textContent = `${currentMinutes}:${currentSeconds}`;
+});
 
 function togglePlay() {
-    if (isPlaying) {
-        pauseMusic();
-    } else {
-        playMusic();
-    }
+    player.isPlaying ? pauseMusic() : playMusic();
 }
 
-function playMusic() {
-    isPlaying = true;
-    // Change play button icon
-    playBtn.classList.replace('fa-play', 'fa-pause');
-    // Set button hover title
-    playBtn.setAttribute('title', 'Pause');
-    music.play();
-}
+audio.addEventListener('play', function() {
+    player.isPlaying = true;
+    elements.playBtn.classList.replace('fa-play', 'fa-pause');
+    elements.playBtn.setAttribute('title', 'Pause');
+});
 
-function pauseMusic() {
-    isPlaying = false;
-    // Change pause button icon
-    playBtn.classList.replace('fa-pause', 'fa-play');
-    // Set button hover title
-    playBtn.setAttribute('title', 'Play');
-    music.pause();
-}
+audio.addEventListener('pause', function() {
+    player.isPlaying = false;
+    elements.playBtn.classList.replace('fa-pause', 'fa-play');
+    elements.playBtn.setAttribute('title', 'Play');
+});
 
 function loadMusic(song) {
-    music.src = song.path;
-    title.textContent = song.displayName;
-    artist.textContent = song.artist;
-    image.src = song.cover;
-    background.src = song.cover;
+    audio.src = song.path;
+    elements.title.textContent = song.displayName;
+    elements.artist.textContent = song.artist;
+    elements.image.src = song.cover;
+    elements.background.src = song.cover;
 }
 
 function changeMusic(direction) {
-    musicIndex = (musicIndex + direction + songs.length) % songs.length;
-    loadMusic(songs[musicIndex]);
+    player.currentIndex = (player.currentIndex + direction + songs.length) % songs.length;
+    loadMusic(songs[player.currentIndex]);
 
-    // Check if the music is playing before calling playMusic
-    if (isPlaying) {
-        music.play();
+    if (player.isPlaying) {
+        audio.play();
     }
 }
 
-// Update Progress Bar & Time
-function updateProgressBar(e){
-    if(isPlaying){
-        const{duration, currentTime} = e.srcElement;
-        // Upadate Progress bar width
+function updateProgressBar({ target: { duration, currentTime } }) {
+    if (player.isPlaying) {
         const progressPercent = (currentTime / duration) * 100;
-        progress.style.width=`${progressPercent}%`;
-        // Calculate display for duration
+        elements.progress.style.width = `${progressPercent}%`;
+
         const durationMinutes = Math.floor(duration / 60);
         let durationSeconds = Math.floor(duration % 60);
-        if(durationSeconds < 10){
-            durationSeconds = `0${durationSeconds}`
-        }
-         // Delay switching current Element to avoid NaN
-         if(durationSeconds){
-            durationEl.textContent= `${durationMinutes}:${durationSeconds}`;
-     }
 
-        // Calculate display for current Time
-        const currentMinutes = Math.floor(currentTime / 60); //*(converting to minutes)...
+        if (durationSeconds) {
+            elements.durationEl.textContent = `${durationMinutes}:${durationSeconds}`;
+        }
+
+        const currentMinutes = Math.floor(currentTime / 60);
         let currentSeconds = Math.floor(currentTime % 60);
-        if(currentSeconds < 10){
-            currentSeconds = `0${currentSeconds}`
-        }
-        currentTimeEl.textContent=`${currentMinutes}:${currentSeconds}`;
 
-        
-    } 
+        if (currentSeconds < 10) {
+            currentSeconds = `0${currentSeconds}`;
+        }
+
+        elements.currentTimeEl.textContent = `${currentMinutes}:${currentSeconds}`;
+    }
 }
 
-// Set Progress Bar
-function setProgressBar(e){
-    const width=this.clientWidth;
-    const clickX=e.offsetX;
-    const {duration} = music;
-    music.currentTime=(clickX / width) * duration; //gives the actual time at that point of the song...
+function setProgressBar(e) {
+    const width = elements.playerProgress.clientWidth;
+    const clickX = e.offsetX;
+    const { duration } = audio;
+    audio.currentTime = (clickX / width) * duration;
 }
 
 function redirectToWebsite() {
@@ -129,14 +148,14 @@ function handleKeydown(event) {
     }
 }
 
-playBtn.addEventListener('click', togglePlay);
-prevBtn.addEventListener('click', () => changeMusic(-1));
-nextBtn.addEventListener('click', () => changeMusic(1));
-music.addEventListener('ended', () => changeMusic(1));
-music.addEventListener('timeupdate', updateProgressBar);
-playerProgress.addEventListener('click', setProgressBar);
-image.addEventListener('click', redirectToWebsite);
+elements.playBtn.addEventListener('click', togglePlay);
+elements.prevBtn.addEventListener('click', () => changeMusic(-1));
+elements.nextBtn.addEventListener('click', () => changeMusic(1));
+audio.addEventListener('ended', () => changeMusic(1));
+audio.addEventListener('timeupdate', updateProgressBar);
+elements.playerProgress.addEventListener('click', setProgressBar);
+elements.image.addEventListener('click', redirectToWebsite);
 document.addEventListener('keydown', handleKeydown);
 
 // Load the initial song
-loadMusic(songs[musicIndex]);
+loadMusic(songs[player.currentIndex]);
