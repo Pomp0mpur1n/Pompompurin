@@ -135,7 +135,7 @@ music.addEventListener('ended', () => changeMusic(1));
 music.addEventListener('timeupdate', updateProgressBar);
 playerProgress.addEventListener('click', setProgressBar);
 playerProgress.addEventListener('touchstart', setProgressBar);
-playerProgress.addEventListener('touchmove', setProgressBar)
+playerProgress.addEventListener('touchmove', setProgressBar);
 image.addEventListener('click', redirectToWebsite);
 document.addEventListener('keydown', handleKeydown);
 
