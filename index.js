@@ -49,7 +49,7 @@ audio.addEventListener('canplay', function() {
     // Optionally, you can update the UI or take other actions here
 });
 
-audio.addEventListener('timeupdate', function() {
+audio.ontimeupdate = function() {
     const { duration, currentTime } = audio;
     const progressPercent = (currentTime / duration) * 100;
     elements.progress.style.width = `${progressPercent}%`;
@@ -73,7 +73,7 @@ audio.addEventListener('timeupdate', function() {
     }
 
     elements.currentTimeEl.textContent = `${currentMinutes}:${currentSeconds}`;
-});
+};
 
 function togglePlay() {
     player.isPlaying ? pauseMusic() : playMusic();
